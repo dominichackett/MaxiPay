@@ -1,11 +1,19 @@
 import CustomButton from 'components/CustomButton';
 import './global.css';
-
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PassengersScreen from './screens/passengers';
 
-export default function App() {
+const Stack = createNativeStackNavigator();
+
+function MainAppContent() {
+   const navigation = useNavigation();
+   const handlePassengers = ()=>{
+    navigation.navigate("Passengers")
+   }
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView contentContainerStyle={{ height: "100%" }}>
@@ -23,7 +31,7 @@ export default function App() {
           </View>
             <CustomButton
             title="Passenger Sign Up"
-            handlePress={() => { console.log("clicked")}}
+            handlePress={handlePassengers}
             containerStyles="w-full  text-white bg-secondary" textStyles={undefined} isLoading={undefined}          />
 
   <CustomButton
@@ -40,5 +48,16 @@ export default function App() {
       
       <StatusBar backgroundColor="#161622" style="light" />
     </SafeAreaView>
+  );
+}
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={MainAppContent} options={{ headerShown: false }} />
+        <Stack.Screen name="Passengers" component={PassengersScreen} options={{ title: 'Passengers' }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
