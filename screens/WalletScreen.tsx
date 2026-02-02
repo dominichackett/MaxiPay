@@ -1,10 +1,16 @@
 import CustomButton from 'components/CustomButton';
 import React from 'react';
-import { View, Text,Image } from 'react-native';
+import { View, Text, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
 const WalletScreen = () => {
+  const navigation = useNavigation(); // Get navigation object
   const walletBalance = '1,234.56';
   const currencySymbol = '$';
+
+  const handlePayPress = () => {
+    navigation.navigate('QRScanner'); // Navigate to QRScannerScreen
+  };
 
   return (
     <View className="flex-1 items-center justify-center bg-white p-4">
@@ -23,7 +29,7 @@ const WalletScreen = () => {
       </View>
        <CustomButton
             title="Pay"
-            handlePress={() => { console.log("clicked")}}
+            handlePress={handlePayPress} // Use the new handlePayPress function
             containerStyles="w-full  mt-2 text-white bg-accent" textStyles={undefined} isLoading={undefined}          />
 
     </View>

@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PassengersScreen from './screens/passengers';
+import QRScannerScreen from './screens/QRScannerScreen'; // Import QRScannerScreen
 
 const Stack = createNativeStackNavigator();
 
@@ -57,6 +58,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Home" component={MainAppContent} options={{ headerShown: false }} />
         <Stack.Screen name="Passengers" component={PassengersScreen} options={{ title: 'Passengers' }} />
+        <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ title: 'Scan QR Code' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
