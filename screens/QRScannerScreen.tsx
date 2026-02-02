@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Button, Alert, Dimensions } from 'react-native';
+import {Image, Text, View, StyleSheet, Button, Alert, Dimensions } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import CustomButton from 'components/CustomButton';
 
 const { width } = Dimensions.get('window');
 const qrCodeAreaSize = width * 0.7; // 70% of screen width
@@ -10,6 +12,8 @@ const QRScannerScreen = () => {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(true); // Start with scanned=true to disable scanning initially
+  const [isValidQRCode,setIsValidQRCode] = useState(false)
+  const [scanError,setScanError] = useState(false)
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -18,9 +22,15 @@ const QRScannerScreen = () => {
     }
   }, [permission]);
 
+  const resetScan = ()=>{
+    setIsValidQRCode(false)
+    setScanError(false)
+    setScanned(false)
+  }
+
   const handleBarCodeScanned = (scanningResult: BarcodeScanningResult) => {
     setScanned(true); // Disable further scanning
-    Alert.alert(
+    /*Alert.alert(
       "QR Code Scanned!",
       `Type: ${scanningResult.type}\nData: ${scanningResult.data}`,
       [
@@ -28,7 +38,9 @@ const QRScannerScreen = () => {
           navigation.goBack();
         }}
       ]
-    );
+    );*/
+    setIsValidQRCode(false)
+    setScanError(true)
     console.log(`Bar code with type ${scanningResult.type} and data ${scanningResult.data} has been scanned!`);
   };
 
@@ -37,12 +49,69 @@ const QRScannerScreen = () => {
   };
 
   if (!permission) {
-    return <Text className="flex-1 items-center justify-center text-xl">Requesting for camera permission</Text>;
-  }
-  if (!permission.granted) {
-    return <Text className="flex-1 items-center justify-center text-xl text-red-500">No access to camera</Text>;
+    return (
+      <View style={styles.permissionContainer}>
+        <MaterialIcons name="camera-alt" size={80} color="gray" />
+        <Text style={styles.permissionText}>Requesting camera permission...</Text>
+      </View>
+    );
   }
 
+  if (!permission.granted) {
+    return (
+      <View style={styles.permissionContainer}>
+        <MaterialIcons name="camera-alt" size={80} color="red" />
+        <Text style={[styles.permissionText, { color: 'red' }]}>Camera access denied</Text>
+        <Text style={styles.permissionTextSmall}>
+          Please grant camera permission in your device settings to scan QR codes.
+        </Text>
+        <CustomButton
+          title="Grant Permission"
+          handlePress={requestPermission}
+          containerStyles="w-full mt-4 text-white bg-secondary" textStyles={undefined} isLoading={undefined}
+        />
+        <CustomButton
+          title="Go Back"
+          handlePress={() => navigation.goBack()}
+          containerStyles="w-full mt-2 text-white bg-neutral" textStyles={undefined} isLoading={undefined}
+        />
+      </View>
+    );
+  }
+
+  if(scanError)
+  {
+    return (
+      <View style={styles.permissionContainer}> 
+        <Image
+          source={require('../assets/images/logoblk2.png')}
+          style={styles.errorLogo} // Add a new style for the logo
+          resizeMode="contain"
+        />
+        <MaterialIcons name="error-outline" size={80} color="red" />
+        <Text style={[styles.permissionText, { color: 'red' }]}>Scan Failed</Text>
+        <Text style={styles.permissionTextSmall}>
+          The QR code scanned is not recognized or is invalid. Please ensure you are scanning a valid MaxiPay QR code.
+        </Text>
+        <CustomButton
+          title="Try Again"
+          handlePress={resetScan}
+          containerStyles="w-full mt-4 text-white bg-secondary"
+          textStyles={undefined}
+          isLoading={undefined}
+        />
+        <CustomButton
+          title="Go Back"
+          handlePress={() => navigation.goBack()}
+          containerStyles="w-full mt-2 text-white bg-neutral"
+          textStyles={undefined}
+          isLoading={undefined}
+        />
+      </View>
+    )
+  }  
+
+  if(!scanError )
   return (
     <View style={styles.container}>
       {/* Full-screen camera view - always active */}
@@ -72,12 +141,15 @@ const QRScannerScreen = () => {
       </View>
 
       <View style={styles.scanButtonContainer}>
-        <Button
-          title={scanned ? 'Tap to Scan' : 'Scanning...'}
-          onPress={startScan}
-          disabled={!scanned} // Disable button while scanning is active
-        />
-      </View>
+
+<CustomButton
+             title={scanned ? 'Tap to Scan' : 'Scanning...'}
+            handlePress={startScan}
+            containerStyles="w-full  mt-2 text-white bg-accent" textStyles={undefined} isLoading={undefined}          />
+
+ </View>
+          
+    
     </View>
   );
 };
@@ -87,6 +159,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 20,
+  },
+  permissionText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  permissionTextSmall: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: 'gray',
+  },
+  errorLogo: { // New style for the logo
+    width: 150, // Adjust size as needed
+    height: 150, // Adjust size as needed
+    marginBottom: 20,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -125,14 +222,13 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
-  scanButtonContainer: { // Renamed from scanAgainButtonContainer
+  scanButtonContainer: {
     position: 'absolute',
     bottom: 20,
     alignSelf: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'transparent',
     padding: 10,
     borderRadius: 5,
   },
 });
-
 export default QRScannerScreen;
