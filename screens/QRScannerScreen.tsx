@@ -8,8 +8,15 @@ import CustomButton from 'components/CustomButton';
 const { width } = Dimensions.get('window');
 const qrCodeAreaSize = width * 0.7; // 70% of screen width
 
-const QRScannerScreen = () => {
-  const [facing, setFacing] = useState<CameraType>('back');
+const QRScannerScreen = ({ route }) => {
+  const {amount} = route.params
+const formatCurrency = () => {
+ 
+    return new Intl.NumberFormat( 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+};  const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(true); // Start with scanned=true to disable scanning initially
   const [isValidQRCode,setIsValidQRCode] = useState(false)
@@ -68,12 +75,12 @@ const QRScannerScreen = () => {
         <CustomButton
           title="Grant Permission"
           handlePress={requestPermission}
-          containerStyles="w-full mt-4 text-white bg-secondary" textStyles={undefined} isLoading={undefined}
+          containerStyles="w-full mt-4 text-white bg-secondary" textStyles={"text-white"} isLoading={undefined}
         />
         <CustomButton
           title="Go Back"
           handlePress={() => navigation.goBack()}
-          containerStyles="w-full mt-2 text-white bg-neutral" textStyles={undefined} isLoading={undefined}
+          containerStyles="w-full mt-2 text-white bg-neutral" textStyles={"text-white"} isLoading={undefined}
         />
       </View>
     );
@@ -97,14 +104,14 @@ const QRScannerScreen = () => {
           title="Try Again"
           handlePress={resetScan}
           containerStyles="w-full mt-4 text-white bg-secondary"
-          textStyles={undefined}
+          textStyles={"text-white"}
           isLoading={undefined}
         />
         <CustomButton
           title="Go Back"
           handlePress={() => navigation.goBack()}
           containerStyles="w-full mt-2 text-white bg-neutral"
-          textStyles={undefined}
+          textStyles={"text-white"}
           isLoading={undefined}
         />
       </View>
@@ -138,6 +145,8 @@ const QRScannerScreen = () => {
       <View style={styles.textContainer}>
         <Text style={styles.description}>Scan QR Code</Text>
         <Text style={styles.instructions}>Align QR code within the frame</Text>
+                <Text style={styles.pay}>Pay: {formatCurrency()}</Text>
+
       </View>
 
       <View style={styles.scanButtonContainer}>
@@ -145,7 +154,7 @@ const QRScannerScreen = () => {
 <CustomButton
              title={scanned ? 'Tap to Scan' : 'Scanning...'}
             handlePress={startScan}
-            containerStyles="w-full  mt-2 text-white bg-accent" textStyles={undefined} isLoading={undefined}          />
+            containerStyles="w-full  mt-2 text-white bg-accent" textStyles={"text-white"} isLoading={undefined}          />
 
  </View>
           
@@ -221,6 +230,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
     textAlign: 'center',
+  },
+   pay: {
+    fontSize: 26,
+    color: 'red',
+    textAlign: 'center',
+    top:10
   },
   scanButtonContainer: {
     position: 'absolute',

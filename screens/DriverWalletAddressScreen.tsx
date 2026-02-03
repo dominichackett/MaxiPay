@@ -4,9 +4,9 @@ import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg'; // Import QRCode component
 import CustomButton from '../components/CustomButton';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { getPassengerWallet } from 'utils/wallet';
+import { getDriverWallet } from 'utils/wallet';
 import {ethers} from 'ethers'
-const WalletAddressScreen = () => {
+const DriverWalletAddressScreen = () => {
   const [walletAddress,setWalletAddress] = useState<null | ethers.Wallet>(null)
   const [copied, setCopied] = useState(false);
 
@@ -20,8 +20,8 @@ const WalletAddressScreen = () => {
   useEffect(()=>{
     async function setup(){
       console.log("Wallet Address")
-      console.log(await getPassengerWallet())
-       setWalletAddress(await getPassengerWallet())
+      console.log(await getDriverWallet())
+       setWalletAddress(await getDriverWallet())
     }
     setup()
   },[])
@@ -62,4 +62,4 @@ const WalletAddressScreen = () => {
   );
 };
 
-export default WalletAddressScreen;
+export default DriverWalletAddressScreen;
