@@ -10,7 +10,7 @@ import { useState ,useEffect} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PassengersScreen from './screens/passengers';
 import DriversScreen from './screens/drivers';
-
+import TopupScreen from './screens/TopupScreen'
 import QRScannerScreen from './screens/QRScannerScreen'; // Import QRScannerScreen
 import PaymentScreen from 'screens/PaymentScreen';
 import { driverWalletExist,passengerWalletExist ,createPassengerWallet,createDriverWallet} from 'utils/wallet';
@@ -125,6 +125,8 @@ export default function App() {
  
         <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ title: 'Scan QR Code' }} />
         <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Accept Payment' }} />
+        <Stack.Screen name="Topup" component={TopupScreen} options={{ title: 'Top Up' }} />
+
 
       </Stack.Navigator>
     </NavigationContainer>

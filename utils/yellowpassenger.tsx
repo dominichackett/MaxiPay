@@ -1,0 +1,242 @@
+import { getPassengerWallet } from "./wallet";
+import {NitroliteClient,MessageSigner,createGetLedgerBalancesMessage,parseAnyRPCResponse,RPCMethod,createEIP712AuthMessageSigner, createAuthVerifyMessage, createAuthRequestMessage, createAuthVerifyMessageWithJWT, createECDSAMessageSigner} from '@erc7824/nitrolite'
+import { ethers } from "ethers";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { createWalletClient, http , Hex} from "viem";
+import { mainnet } from "viem/chains";
+let ws: WebSocket | null = null;
+let  pWallet:ethers.Wallet
+let connected =false
+let walletClient
+let sessionPrivateKey 
+let sessionAccount 
+let sessionAddress 
+let authParams
+let jwtToken: string | null = null;
+
+
+let balanceCallback = null;
+
+// Export function to set the callback
+export const setBalanceCallback = (callback) => {
+  balanceCallback = callback;
+};
+const messageSigner: MessageSigner = async (payload): Promise<Hex> => {
+    try {
+        const wallet = await getPassengerWallet();
+        
+        // For ethers v5.7.2:
+        // 1. Convert payload to JSON string
+        const message = JSON.stringify(payload);
+        
+        // 2. Hash the message to get the digest
+        const messageBytes = ethers.utils.arrayify(ethers.utils.id(message));
+        
+        // 3. Sign the digest directly (without EIP-191 prefix)
+        const flatSignature = await wallet._signingKey().signDigest(messageBytes);
+        
+        // 4. Join the signature components
+        const signature = ethers.utils.joinSignature(flatSignature);
+        
+        return signature as Hex;
+    } catch (error) {
+        console.error('Error signing message:', error);
+        throw error;
+    }
+};
+
+const fullAuth = async(message) =>
+{
+     const eip712Signer =  createEIP712AuthMessageSigner(
+      walletClient, // Your ethers wallet
+      {
+        scope: authParams.scope,
+        session_key: sessionAddress,
+        expires_at: authParams.expires_at,
+        allowances: [],
+      },
+      {
+        name: 'MaxiPay',
+      }
+    );
+    
+    console.log('EIP Signer',eip712Signer)
+    // Create auth verify message
+     console.log('Verify Message',authParams)
+
+  try{  const authVerifyMsg = await createAuthVerifyMessage(
+      eip712Signer,
+      message  // Pass the challenge message
+    );  // Send it back
+    ws.send(authVerifyMsg)}catch(error)
+    {
+        console.log(error)
+    }
+    
+}
+export const connect = async()=>{
+  ws = new WebSocket('wss://clearnet-sandbox.yellow.com/ws');
+   ws.onopen = async() => {
+    console.log('We are Connected');
+    connected=true
+    sessionPrivateKey = generatePrivateKey();
+    sessionAccount = privateKeyToAccount(sessionPrivateKey);
+    sessionAddress = sessionAccount.address;
+
+   const wallet = await getPassengerWallet()
+    pWallet = wallet
+           const viemAccount = privateKeyToAccount(pWallet.privateKey as Hex);
+walletClient = createWalletClient({
+    account: viemAccount,
+    chain: mainnet, // Doesn't really matter for signing
+    transport: http(),
+});
+  //console.log(ws)
+  console.log('Address', pWallet.address)
+    authParams ={
+    address: pWallet.address,
+    session_key: sessionAddress,
+    application: 'MaxiPay',
+
+    allowances: [] ,//[{ asset: 'ytest.usd', amount: '1000000000' }],
+  expires_at: (Math.floor(Date.now() / 1000) + 3600), // 1 hour expiration (as string)
+    scope: 'console',
+}
+     const authRequestMsg = await createAuthRequestMessage(authParams);
+console.log(authRequestMsg)
+
+ws.send(authRequestMsg);
+
+  };
+
+  ws.onmessage = async(event: MessageEvent) => {
+     const message = parseAnyRPCResponse(event.data);
+   
+   if(message.method == RPCMethod.GetLedgerBalances)
+   {
+     console.log(event.data)
+   }
+   
+     if(message.method == RPCMethod.AuthChallenge)
+    {
+        
+        
+        console.log("Auth Challenge")
+        console.log(message)
+      if(jwtToken)
+      {
+           try{ 
+            
+            //Authenticate with jwtToken if available
+            const authVerifyMsg = await createAuthVerifyMessageWithJWT(jwtToken);
+            ws.send(authVerifyMsg);
+           }catch(jwtError)
+           {
+            jwtToken =  null    
+            await fullAuth(message)
+
+
+           }  
+      } else
+        {
+             await fullAuth(message)
+
+        }  
+     
+   
+    }    
+
+    // Handle auth success
+  if (message.method === RPCMethod.AuthVerify) {
+    if (message.params.success) {
+                        console.log('✅ Authentication successful!');
+                        authenticated = true;
+                        
+                        // ✅ Save JWT token for future reconnections
+                        if (message.params.jwtToken) {
+                            console.log('💾 Saving JWT token for reconnection');
+                            jwtToken= message.params.jwtToken;
+                        }
+                    } else {
+                        console.error('❌ Authentication failed');
+                        jwtToken=null; // Clear invalid JWT
+                    }
+  }
+
+  if(message.method == RPCMethod.BalanceUpdate)
+  {
+       if(balanceCallback)
+      balanceCallback(ethers.utils.formatUnits(message.params.balanceUpdates[0].amount,6))
+    console.log(ethers.utils.formatUnits(message.params.balanceUpdates[0].amount,6))
+       // console.log(message.params.balanceUpdate[0].amount)
+  } 
+    console.log('Received:', JSON.stringify(message));
+    console.log(message.method)
+  };
+
+ 
+
+  ws.onerror = async(error) => {
+    console.error('Error:', error);
+     console.error('❌ Error:', message.params);
+            
+            const errorMsg = message.params.error?.toLowerCase() || '';
+            
+            // Handle expired session key
+            if (errorMsg.includes('session key') && 
+                (errorMsg.includes('expired') || errorMsg.includes('exists'))) {
+                console.log('🔄 Session key expired, clearing JWT and re-authenticating...');
+                jwtToken = null;
+                
+                // Do full authentication
+                await fullAuth(message);
+            }
+            // Handle other JWT errors
+            else if (errorMsg.includes('jwt') || 
+                     errorMsg.includes('token') ||
+                     errorMsg.includes('expired') ||
+                     errorMsg.includes('invalid')) {
+                console.log('🔄 JWT invalid, clearing and retrying...');
+                jwtToken =null;
+                await fullAuth(message);
+            }
+        
+  };
+
+  ws.onclose = (closeEvent) => {
+    console.log('Disconnected');
+     console.log(
+          'Disconnected. Code:',
+        closeEvent.code,
+         'Reason:',
+            closeEvent.reason
+     );
+  };
+
+}
+
+
+
+
+
+export const getBalance = async()=>{
+    if (!ws || !pWallet || !connected) {
+    throw new Error('Not connected or wallet not initialized');
+   }
+   console.log("Balances")
+    const sessionSigner = createECDSAMessageSigner(sessionPrivateKey);
+
+     const balanceMsg = await createGetLedgerBalancesMessage(
+      sessionSigner,
+      pWallet.address
+    );
+
+    console.log("getting balances")
+
+    ws.send(balanceMsg);
+
+}
+
+export const isConnected = ()=>{
+    return connected
+}

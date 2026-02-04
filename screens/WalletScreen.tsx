@@ -1,11 +1,11 @@
 import CustomButton from 'components/CustomButton';
-import React, { useState } from 'react'; // Import useState
+import React, { useState,useEffect } from 'react'; // Import useState
 import { View, Text, Image, TextInput } from 'react-native'; // Import TextInput
 import { useNavigation } from '@react-navigation/native';
-
+import { connect,getBalance,isConnected,setBalanceCallback } from 'utils/yellowpassenger';
 const WalletScreen = () => {
   const navigation = useNavigation();
-  const walletBalance = 0;
+  const [walletBalance,setWalletBalance] = useState(0);
   
   const [amount, setAmount] = useState(''); // New state for amount input
 const formatCurrency = () => {
@@ -16,6 +16,36 @@ const formatCurrency = () => {
   }).format(walletBalance);
 };
 
+const updateBalance = (balance)=>{
+    setWalletBalance(balance)
+  }
+ useEffect(()=>{
+
+  
+   async function setup() {
+    setBalanceCallback(updateBalance)   
+    await connect()
+
+     //await authenticate()
+     // await getBalance()
+   }
+   setup()
+ },[])
+
+ 
+useEffect(()=>{
+   async function setup() {
+      await getBalance()
+   }
+   if(isConnected())
+   {
+     console.log(isConnected())
+    setup()
+    //console.log("Trying to Authenticate")
+   }
+ },[isConnected()])
+
+ 
   const handlePayPress = () => {
     // In a real app, you'd pass the amount to the QRScannerScreen
     // navigation.navigate('QRScanner', { paymentAmount: amount });
