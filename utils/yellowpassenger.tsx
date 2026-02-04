@@ -1,5 +1,5 @@
 import { getPassengerWallet } from "./wallet";
-import {NitroliteClient,MessageSigner,createGetLedgerBalancesMessage,parseAnyRPCResponse,RPCMethod,createEIP712AuthMessageSigner, createAuthVerifyMessage, createAuthRequestMessage, createAuthVerifyMessageWithJWT, createECDSAMessageSigner} from '@erc7824/nitrolite'
+import {MessageSigner,createGetLedgerBalancesMessage,parseAnyRPCResponse,RPCMethod,createEIP712AuthMessageSigner, createAuthVerifyMessage, createAuthRequestMessage, createAuthVerifyMessageWithJWT, createECDSAMessageSigner, createCreateChannelMessage} from '@erc7824/nitrolite'
 import { ethers } from "ethers";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http , Hex} from "viem";
@@ -145,7 +145,7 @@ ws.send(authRequestMsg);
      
    
     }    
-
+     
     // Handle auth success
   if (message.method === RPCMethod.AuthVerify) {
     if (message.params.success) {
@@ -163,16 +163,44 @@ ws.send(authRequestMsg);
                     }
   }
 
-  if(message.method == RPCMethod.BalanceUpdate)
+  if(message.method === RPCMethod.BalanceUpdate)
   {
        if(balanceCallback)
       balanceCallback(ethers.utils.formatUnits(message.params.balanceUpdates[0].amount,6))
     console.log(ethers.utils.formatUnits(message.params.balanceUpdates[0].amount,6))
        // console.log(message.params.balanceUpdate[0].amount)
   } 
+
+  
+
+  if(message.method=== RPCMethod.CreateChannel)
+  {
+
+            const { channelId, channel, state, serverSignature } = message.params;
+            const unsignedInitialState = {
+            intent: state.intent,
+            version: BigInt(state.version),
+            data: state.stateData, // Map state_data to data
+            allocations: state.allocations.map((a: any) => ({
+                destination: a.destination,
+                token: a.token,
+                amount: BigInt(a.amount),
+            })),
+        };
+   
+     ws.send({
+    channel,
+    unsignedInitialState,
+    serverSignature,
+});
+
+  } 
     console.log('Received:', JSON.stringify(message));
     console.log(message.method)
   };
+
+
+ 
 
  
 
@@ -240,3 +268,5 @@ export const getBalance = async()=>{
 export const isConnected = ()=>{
     return connected
 }
+
+

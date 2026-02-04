@@ -4,10 +4,9 @@ import { CameraView, CameraType, useCameraPermissions, BarcodeScanningResult } f
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import CustomButton from 'components/CustomButton';
-
+import { sendPayment ,setCallback} from 'utils/payment';
 const { width } = Dimensions.get('window');
 const qrCodeAreaSize = width * 0.7; // 70% of screen width
-
 const QRScannerScreen = ({ route }) => {
   const {amount} = route.params
 const formatCurrency = () => {
@@ -21,8 +20,21 @@ const formatCurrency = () => {
   const [scanned, setScanned] = useState(true); // Start with scanned=true to disable scanning initially
   const [isValidQRCode,setIsValidQRCode] = useState(false)
   const [scanError,setScanError] = useState(false)
+  const [recipient,setRecipient]  = useState("0xa12ed10B0737D73e5A267cCa6Dac8780BB50639E")
+  const [paymentSuccess,setPaymentSuccess]  = useState<Boolean| null>()
+  const [paying,setPaying] = useState(false)
   const navigation = useNavigation();
-
+  
+  const listenForPayment = (result:Boolean)=>{
+      setPaymentSuccess(result)
+      setPaying(false)
+    
+  }
+  
+  useEffect(()=>{
+     setCallback(listenForPayment)
+     
+  },[])
   useEffect(() => {
     if (permission === null) {
       requestPermission();
@@ -33,6 +45,10 @@ const formatCurrency = () => {
     setIsValidQRCode(false)
     setScanError(false)
     setScanned(false)
+  }
+
+  const makePayment = async()=>{
+   sendPayment(recipient,amount)
   }
 
   const handleBarCodeScanned = (scanningResult: BarcodeScanningResult) => {
@@ -46,7 +62,7 @@ const formatCurrency = () => {
         }}
       ]
     );*/
-    setIsValidQRCode(false)
+    setIsValidQRCode(true)
     setScanError(true)
     console.log(`Bar code with type ${scanningResult.type} and data ${scanningResult.data} has been scanned!`);
   };
@@ -67,7 +83,7 @@ const formatCurrency = () => {
   if (!permission.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <MaterialIcons name="camera-alt" size={80} color="red" />
+        <MaterialIcons name="camera-alt" size={120} color="red" />
         <Text style={[styles.permissionText, { color: 'red' }]}>Camera access denied</Text>
         <Text style={styles.permissionTextSmall}>
           Please grant camera permission in your device settings to scan QR codes.
@@ -86,6 +102,55 @@ const formatCurrency = () => {
     );
   }
 
+
+if(isValidQRCode )
+{
+    return (
+      <View style={styles.permissionContainer}> 
+        <Image
+          source={require('../assets/images/colorlogo.png')}
+          style={styles.errorLogo} // Add a new style for the logo
+          resizeMode="contain"
+        />
+        {paymentSuccess===true && <><MaterialIcons name="done-outline" size={120} color="green" />
+         <Text style={[styles.paymentText, { color: 'green' }]}>Approved</Text>
+        </>}
+        {paymentSuccess==false && <><MaterialIcons name="error-outline" size={120} color="red" />        
+        <Text style={[styles.paymentText, { color: 'red' }]}>Declined</Text>
+     </>}
+
+        <Text style={[styles.paymentText, { color: 'green' }]}>Pay: {formatCurrency()}</Text>
+        <Text style={styles.permissionTextSmall}>
+          This is a valid MaxiPay QR code.
+        </Text>
+
+        {paymentSuccess &&<Text style={styles.paymentTextSuccess}>
+            Payment Sent                            
+        </Text>}
+
+        {paymentSuccess==false &&<Text style={styles.paymentTextError}>
+            Payment Declined                            
+        </Text>}
+        
+         
+        {!paymentSuccess && <CustomButton
+          title="Tap to Pay"
+          handlePress={makePayment}
+          containerStyles={`w-full mt-4 ${(paying) ?"bg-gray-100 text-gray-400" : "text-white bg-accent" }`}
+          textStyles={`${(paying) ?"text-gray-300" : "text-white " }`}
+          isLoading={undefined}
+        />}
+        <CustomButton
+          title="Cancel"
+          handlePress={() => navigation.goBack()}
+          containerStyles="w-full mt-2 text-white bg-neutral"
+          textStyles={"text-white"}
+          isLoading={undefined}
+        />
+      </View>
+    )
+} 
+
   if(scanError)
   {
     return (
@@ -95,7 +160,7 @@ const formatCurrency = () => {
           style={styles.errorLogo} // Add a new style for the logo
           resizeMode="contain"
         />
-        <MaterialIcons name="error-outline" size={80} color="red" />
+        <MaterialIcons name="error-outline" size={120} color="red" />
         <Text style={[styles.permissionText, { color: 'red' }]}>Scan Failed</Text>
         <Text style={styles.permissionTextSmall}>
           The QR code scanned is not recognized or is invalid. Please ensure you are scanning a valid MaxiPay QR code.
@@ -176,13 +241,36 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
   },
+   paymentText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
   permissionText: {
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 10,
-  },
+  },paymentTextSuccess: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+    color:"green"
+  },paymentTextError: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+    color:"red"
+  }
+  ,
+
   permissionTextSmall: {
     fontSize: 16,
     textAlign: 'center',
