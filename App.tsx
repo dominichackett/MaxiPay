@@ -88,7 +88,7 @@ function MainAppContent() {
           />
           
           <View className="relative mt-10">
-            <Text className="text-3xl text-secondary font-bold text-center">
+            <Text className="text-3xl text-black font-bold text-center">
               Easy Mobile Taxi Payments{"\n"}
             </Text>
           </View>

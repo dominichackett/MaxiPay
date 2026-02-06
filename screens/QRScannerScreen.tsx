@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import CustomButton from 'components/CustomButton';
 import { sendPayment ,setCallback} from 'utils/payment';
+import {ethers} from 'ethers'
 const { width } = Dimensions.get('window');
 const qrCodeAreaSize = width * 0.7; // 70% of screen width
 const QRScannerScreen = ({ route }) => {
@@ -17,10 +18,10 @@ const formatCurrency = () => {
   }).format(amount);
 };  const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(true); // Start with scanned=true to disable scanning initially
+  const [scanned, setScanned] = useState(false); // Start with scanned=true to disable scanning initially
   const [isValidQRCode,setIsValidQRCode] = useState(false)
   const [scanError,setScanError] = useState(false)
-  const [recipient,setRecipient]  = useState("0xa12ed10B0737D73e5A267cCa6Dac8780BB50639E")
+  const [recipient,setRecipient]  = useState()
   const [paymentSuccess,setPaymentSuccess]  = useState<Boolean| null>()
   const [paying,setPaying] = useState(false)
   const navigation = useNavigation();
@@ -58,12 +59,35 @@ const formatCurrency = () => {
       `Type: ${scanningResult.type}\nData: ${scanningResult.data}`,
       [
         { text: "OK", onPress: () => {
-          navigation.goBack();
+          console.log("Success")
         }}
       ]
     );*/
-    setIsValidQRCode(true)
-    setScanError(true)
+
+   /* Alert.alert(
+      "QR Code Scanned!",
+      `${scanningResult.data}`,
+      [
+        { text: "OK", onPress: () => {
+          console.log("Success")
+        }}
+      ]
+    );*/
+    console.log(`ETH: ${scanningResult.data}`)
+       
+     if (  ethers.utils.isAddress(scanningResult.data)) {
+          console.log("Starts with ethereum:");
+          setRecipient(scanningResult.data)
+              setIsValidQRCode(true)
+         setScanError(false)
+     }else
+     {
+            setIsValidQRCode(false)
+           setScanError(true)
+     }
+
+
+    
     console.log(`Bar code with type ${scanningResult.type} and data ${scanningResult.data} has been scanned!`);
   };
 
@@ -120,9 +144,9 @@ if(isValidQRCode )
      </>}
 
         <Text style={[styles.paymentText, { color: 'green' }]}>Pay: {formatCurrency()}</Text>
-        <Text style={styles.permissionTextSmall}>
+       {(!paymentSuccess===true ) && <Text style={styles.permissionTextSmall}>
           This is a valid MaxiPay QR code.
-        </Text>
+        </Text>}
 
         {paymentSuccess &&<Text style={styles.paymentTextSuccess}>
             Payment Sent                            

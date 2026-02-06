@@ -1,4 +1,4 @@
-import { getPassengerWallet } from "./wallet";
+import { getDriverWallet } from "./wallet";
 import {MessageSigner,createGetLedgerBalancesMessage,parseAnyRPCResponse,RPCMethod,createEIP712AuthMessageSigner, createAuthVerifyMessage, createAuthRequestMessage, createAuthVerifyMessageWithJWT, createECDSAMessageSigner, createCreateChannelMessage} from '@erc7824/nitrolite'
 import { ethers } from "ethers";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -15,8 +15,13 @@ let authParams
 let jwtToken: string | null = null;
 let pingInterval
 let authenticated
-
 let balanceCallback = null;
+let paymentReceivedCallBack = null
+// Export function to set the callback
+export const setPaymentReceivedCallBack = (callback) => {
+  paymentReceivedCallBack = callback;
+};
+
 
 // Export function to set the callback
 export const setBalanceCallback = (callback) => {
@@ -62,7 +67,7 @@ export const connect = async()=>{
     sessionAccount = privateKeyToAccount(sessionPrivateKey);
     sessionAddress = sessionAccount.address;
 
-   const wallet = await getPassengerWallet()
+   const wallet = await getDriverWallet()
     pWallet = wallet
            const viemAccount = privateKeyToAccount(pWallet.privateKey as Hex);
 walletClient = createWalletClient({
@@ -93,7 +98,9 @@ ws.send(authRequestMsg);
    
    if(message.method == RPCMethod.GetLedgerBalances)
    {
-     console.log(event.data)
+       if(paymentReceivedCallBack)
+      paymentReceivedCallBack(ethers.utils.formatUnits(message.params.ledgerBalances[0].amount,6))
+      console.log(event.data)
    }
    
      if(message.method == RPCMethod.AuthChallenge)
@@ -131,7 +138,6 @@ ws.send(authRequestMsg);
                         console.log('✅ Authentication successful!');
                         authenticated = true;
                         startPing()  //Ping to keep webSocket open
-
                         // ✅ Save JWT token for future reconnections
                         if (message.params.jwtToken) {
                             console.log('💾 Saving JWT token for reconnection');
@@ -147,6 +153,8 @@ ws.send(authRequestMsg);
   {
        if(balanceCallback)
       balanceCallback(ethers.utils.formatUnits(message.params.balanceUpdates[0].amount,6))
+    if(paymentReceivedCallBack)
+      paymentReceivedCallBack(ethers.utils.formatUnits(message.params.balanceUpdates[0].amount,6))
     console.log(ethers.utils.formatUnits(message.params.balanceUpdates[0].amount,6))
        // console.log(message.params.balanceUpdate[0].amount)
   } 
@@ -174,11 +182,18 @@ ws.send(authRequestMsg);
     serverSignature,
 });
 
-  } 
+  }
+  
+  if(  message.method === RPCMethod.CloseAppSession)
+    {      if(paymentReceivedCallBack)
+          paymentReceivedCallBack(3)
+          console.log('Payment',message)
+    }
     console.log('Received:', JSON.stringify(message));
     console.log(message.method)
   };
 
+  
 
  
 

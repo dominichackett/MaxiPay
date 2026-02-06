@@ -1,11 +1,44 @@
 import CustomButton from 'components/CustomButton';
-import React from 'react';
+import React,{useEffect,useState} from 'react';
 import { View, Text, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { connect,getBalance,isConnected,setBalanceCallback } from 'utils/yellowdriver';
 
 const DriverWalletScreen = () => {
   const navigation = useNavigation(); // Get navigation object
-  const walletBalance = 0;
+const [walletBalance,setWalletBalance] = useState(0);
+const [gotDriverWalletBalance,setGotDriverWalletBalance]  =useState(false)
+
+
+const updateBalance = (balance)=>{
+    setWalletBalance(balance)
+    setGotDriverWalletBalance(true)
+  }
+ useEffect(()=>{
+
+  
+   async function setup() {
+    setBalanceCallback(updateBalance)   
+    await connect()
+
+     //await authenticate()
+     // await getBalance()
+   }
+   setup()
+ },[])
+
+ 
+useEffect(()=>{
+   async function setup() {
+      await getBalance()
+   }
+   if(isConnected())
+   {
+     console.log(isConnected())
+    setup()
+    //console.log("Trying to Authenticate")
+   }
+ },[isConnected()])
   
 
 
@@ -18,7 +51,8 @@ const DriverWalletScreen = () => {
 };
 
   const handlePayPress = () => {
-    navigation.navigate('Payment'); // Navigate to QRScannerScreen
+    if(gotDriverWalletBalance)
+    navigation.navigate('Payment',{balance:walletBalance}); // Navigate to QRScannerScreen
   };
 
   return (
@@ -38,7 +72,11 @@ const DriverWalletScreen = () => {
        <CustomButton
             title="Accept Payments"
             handlePress={handlePayPress} // Use the new handlePayPress function
-            containerStyles="w-full  mt-12 text-white bg-accent" textStyles={"text-white"} isLoading={undefined}          />
+              containerStyles={`w-full  mt-2 ${!gotDriverWalletBalance ?"bg-gray-100 text-gray-400" : "text-white bg-accent" }`}
+            textStyles={` ${!gotDriverWalletBalance ?" text-gray-300" : "text-white" }`}
+              isLoading={undefined}
+       
+                       />
 
     </View>
   );
