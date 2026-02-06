@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import DriverWalletScreen from './DriverWalletScreen';
-import HistoryScreen from './HistoryScreen';
+import DriverHistoryScreen from './DriverHistoryScreen';
 import DriverWalletAddressScreen from './DriverWalletAddressScreen'; // Import the new screen
 
 const Tab = createBottomTabNavigator();
@@ -33,7 +33,7 @@ const DriversTabs = () => {
               headerShown: false,
             })}
           >
-            <Tab.Screen name="DriverWallet" component={DriverWalletScreen} /><Tab.Screen name="History" component={HistoryScreen} /><Tab.Screen name="Address" component={DriverWalletAddressScreen} />
+            <Tab.Screen name="DriverWallet" component={DriverWalletScreen} /><Tab.Screen name="History" component={DriverHistoryScreen} /><Tab.Screen name="Address" component={DriverWalletAddressScreen} />
           </Tab.Navigator>  );
 };
 

@@ -5,7 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import CustomButton from 'components/CustomButton';
 import { sendPayment ,setCallback} from 'utils/payment';
+
 import {ethers} from 'ethers'
+import { saveTransaction,TransactionType,Transaction } from 'utils/storage';
 const { width } = Dimensions.get('window');
 const qrCodeAreaSize = width * 0.7; // 70% of screen width
 const QRScannerScreen = ({ route }) => {
@@ -26,9 +28,19 @@ const formatCurrency = () => {
   const [paying,setPaying] = useState(false)
   const navigation = useNavigation();
   
-  const listenForPayment = (result:Boolean)=>{
+  const listenForPayment = async(result:Boolean)=>{
       setPaymentSuccess(result)
       setPaying(false)
+
+      const date = new Date();
+      const formatted = date.toISOString().split('T')[0];
+      const tr:Transaction ={id:Date.now().toString(),
+      date:formatted,
+      description:"Taxi Ride",
+      amount:`-${formatCurrency()}`,
+      type: "expense"
+      }
+      await saveTransaction(TransactionType.PassengerTransactions,tr)
     
   }
   

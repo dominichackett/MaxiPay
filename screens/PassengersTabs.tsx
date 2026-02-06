@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import WalletScreen from './WalletScreen';
 import HistoryScreen from './HistoryScreen';
 import WalletAddressScreen from './WalletAddressScreen'; // Import the new screen
+import { getDriverWallet } from 'utils/wallet';
 
 const Tab = createBottomTabNavigator();
 

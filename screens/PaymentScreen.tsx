@@ -4,6 +4,7 @@ import QRCode from 'react-native-qrcode-svg'; // Import QRCode component
 import { ethers } from 'ethers';
 import { getDriverWallet } from 'utils/wallet';
 import { setPaymentReceivedCallBack } from 'utils/yellowdriver';
+import { saveTransaction, Transaction, TransactionType } from 'utils/storage';
 const PaymentScreen = ({route}) => {
 const {balance} = route.params
   const lastBalance = useRef(balance) 
@@ -11,7 +12,7 @@ const {balance} = route.params
   const [walletAddress,setWalletAddress] = useState<null | ethers.Wallet>(null)
   const [payment,setPayment] = useState(0);
 
-const paymentRecieved = (value)=>{
+const paymentRecieved = async(value)=>{
   
  // if(lastBalance==value)
    // return
@@ -19,8 +20,20 @@ const paymentRecieved = (value)=>{
  //if(value ==lastBalance.current)
    //return 
  if(value-lastBalance.current>0)
- setPayment(value-lastBalance.current )
-  lastBalance.current =value
+ { 
+   setPayment(value-lastBalance.current )
+    const date = new Date();
+         const formatted = date.toISOString().split('T')[0];
+         const tr:Transaction ={id:Date.now().toString(),
+         date:formatted,
+         description:"Payment Received",
+         amount:`-${formatCurrency()}`,
+         type: "income"
+         }
+         await saveTransaction(TransactionType.PassengerTransactions,tr)
+         
+  }
+ lastBalance.current =value
 } 
 
 

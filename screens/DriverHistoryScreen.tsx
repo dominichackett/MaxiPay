@@ -1,7 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { getTransactions,TransactionType,Transaction } from 'utils/storage';
-const HistoryScreen = () => {
+const DriverHistoryScreen = () => {
   // Placeholder data for payment history
   const [paymentHistory,setPaymentHistory] = useState<Transaction[]>([])
   /*const paymentHistory = [
@@ -19,7 +19,7 @@ const HistoryScreen = () => {
   useEffect(()=>{
     async function getPayments(){
      
-     try {const transactions = await getTransactions(TransactionType.PassengerTransactions)
+     try {const transactions = await getTransactions(TransactionType.DriverTransactions)
       setPaymentHistory(transactions)
      }catch(error)
      {
@@ -55,4 +55,4 @@ const HistoryScreen = () => {
   );
 };
 
-export default HistoryScreen;
+export default DriverHistoryScreen;
