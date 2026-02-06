@@ -262,7 +262,7 @@ function startPing() {
        // ws.send(JSON.stringify({ type: 'ping' }));
        getBalance()
       }
-    }, 29000); // 29 seconds
+    }, 25000); // 25 seconds
   }
 
   function stopPing() {

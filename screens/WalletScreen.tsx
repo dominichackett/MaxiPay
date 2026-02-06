@@ -100,7 +100,7 @@ useEffect(()=>{
                  className="w-[300px] h-[254px] rounded-2xl  mt-2"
                  resizeMode="contain"
                />
-      <View className="bg-primary rounded-2xl p-6 shadow-xl w-11/12 items-center mb-4"> 
+      <View className="bg-primary rounded-2xl p-6 shadow-xl w-11/12 items-center mb-2"> 
         <Text className="text-lg font-semibold text-neutral mb-2">Current Balance</Text>
         <View className="flex-row items-baseline">
           <Text className="text-5xl font-extrabold text-neutral">{formatCurrency()}</Text>
@@ -116,7 +116,7 @@ useEffect(()=>{
       </View>
 
       {/* Amount Input */}
-      <View className="w-11/12 mb-8">
+      <View className="w-11/12 mb-4">
         <Text className="text-lg font-semibold text-gray-700 mb-2">Enter Amount to Pay:</Text>
         <TextInput
           className="bg-gray-100 rounded-lg p-4 text-2xl text-gray-800 border-2 border-gray-300 text-center"
@@ -131,7 +131,7 @@ useEffect(()=>{
        <CustomButton
             title="Pay"
             handlePress={handlePayPress}
-            containerStyles={`w-full   ${(parseFloat(amount) <= 0 || amount.trim() === "" ||  parseFloat(amount) >  walletBalance) ?"bg-gray-100 text-gray-400" : "text-white bg-accent" }`}
+            containerStyles={`w-full mb-2  ${(parseFloat(amount) <= 0 || amount.trim() === "" ||  parseFloat(amount) >  walletBalance) ?"bg-gray-100 text-gray-400" : "text-white bg-accent" }`}
             textStyles={` ${(parseFloat(amount) <= 0 || amount.trim() === "" ||  parseFloat(amount) >  walletBalance ) ?" text-gray-300" : "text-white" }`}
             isLoading={undefined}
           />
