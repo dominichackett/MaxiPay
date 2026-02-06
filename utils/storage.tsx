@@ -12,7 +12,7 @@ export interface Transaction{
     type:string
 }
 
-export const getTransactions = async(trType:TransactionType) {
+export const getTransactions = async(trType:TransactionType) =>{
     try {
         const data = await AsyncStorage.getItem(trType);
         if(data)
@@ -34,7 +34,7 @@ export const saveTransaction = async (trType:TransactionType,tr:Transaction)=>{
   try
     {
         let values = await getTransactions(trType)
-        values.push(tr)
+        values.unshift(tr)
         const data = JSON.stringify(values)
         await AsyncStorage.setItem(trType,data)
     }catch(error)

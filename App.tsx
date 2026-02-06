@@ -117,6 +117,8 @@ function MainAppContent() {
 
 export default function App() {
   return (
+        <SafeAreaView className="bg-white h-full">
+
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Home" component={MainAppContent} options={{ headerShown: false }} />
@@ -130,5 +132,6 @@ export default function App() {
 
       </Stack.Navigator>
     </NavigationContainer>
+    </SafeAreaView>
   );
 }

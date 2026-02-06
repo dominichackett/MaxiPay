@@ -33,7 +33,7 @@ const formatCurrency = () => {
       setPaying(false)
 
       const date = new Date();
-      const formatted = date.toISOString().split('T')[0];
+      const formatted = date.toISOString().replace('T', ' ').split('.')[0]; 
       const tr:Transaction ={id:Date.now().toString(),
       date:formatted,
       description:"Taxi Ride",

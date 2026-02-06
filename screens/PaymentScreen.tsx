@@ -23,11 +23,11 @@ const paymentRecieved = async(value)=>{
  { 
    setPayment(value-lastBalance.current )
     const date = new Date();
-         const formatted = date.toISOString().split('T')[0];
+         const formatted = date.toISOString().replace('T', ' ').split('.')[0]; 
          const tr:Transaction ={id:Date.now().toString(),
          date:formatted,
          description:"Payment Received",
-         amount:`-${formatCurrency()}`,
+         amount:`${formatCurrency()}`,
          type: "income"
          }
          await saveTransaction(TransactionType.PassengerTransactions,tr)

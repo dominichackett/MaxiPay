@@ -59,7 +59,7 @@ useEffect(()=>{
     <View className="flex-1 items-center justify-center bg-white p-4">
          <Image
                  source={require('../assets/images/colorlogo.png')}
-                 className="w-[300px] h-[254px] rounded-2xl  mt-2"
+                 className="w-[300px] h-[254px] rounded-2xl  "
                  resizeMode="contain"
                />
       <View className="bg-primary rounded-2xl p-6 shadow-xl w-11/12 items-center">
@@ -72,7 +72,7 @@ useEffect(()=>{
        <CustomButton
             title="Accept Payments"
             handlePress={handlePayPress} // Use the new handlePayPress function
-              containerStyles={`w-full  mt-2 ${!gotDriverWalletBalance ?"bg-gray-100 text-gray-400" : "text-white bg-accent" }`}
+              containerStyles={`w-full  mt-4 ${!gotDriverWalletBalance ?"bg-gray-100 text-gray-400" : "text-white bg-accent" }`}
             textStyles={` ${!gotDriverWalletBalance ?" text-gray-300" : "text-white" }`}
               isLoading={undefined}
        
