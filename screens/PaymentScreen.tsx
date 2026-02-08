@@ -27,22 +27,22 @@ const paymentRecieved = async(value)=>{
          const tr:Transaction ={id:Date.now().toString(),
          date:formatted,
          description:"Payment Received",
-         amount:`${formatCurrency()}`,
+         amount:`${formatCurrency(value-lastBalance.current)}`,
          type: "income"
          }
-         await saveTransaction(TransactionType.PassengerTransactions,tr)
+         await saveTransaction(TransactionType.DriverTransactions,tr)
          
   }
  lastBalance.current =value
 } 
 
 
-const formatCurrency = () => {
+const formatCurrency = (pay) => {
  
     return new Intl.NumberFormat( 'en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(payment);
+  }).format(pay);
 }; 
 useEffect(()=>{
     async function setup(){
@@ -72,7 +72,7 @@ useEffect(()=>{
             <Text className="text-lg font-semibold text-neutral mb-2">Last Payment Received</Text>
             <View className="flex-row items-baseline">
 
-              <Text className="text-6xl font-extrabold text-neutral">{formatCurrency()}</Text>
+              <Text className="text-6xl font-extrabold text-neutral">{formatCurrency(payment)}</Text>
             </View>
             <Text className="text-sm text-neutral mt-4">Updated: Just now</Text>
           </View></>}
