@@ -7,7 +7,7 @@ import { connect,getBalance,isConnected,setBalanceCallback } from 'utils/yellowd
 const DriverWalletScreen = () => {
   const navigation = useNavigation(); // Get navigation object
 const [walletBalance,setWalletBalance] = useState(0);
-const [gotDriverWalletBalance,setGotDriverWalletBalance]  =useState(false)
+const [gotDriverWalletBalance,setGotDriverWalletBalance]  =useState(true)
 
 
 const updateBalance = (balance)=>{
